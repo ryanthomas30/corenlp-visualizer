@@ -1,11 +1,11 @@
 import corenlp from 'corenlp-request-wrapper';
 
 /**
- * 
- * @param {String} corpus 
- * @param {Array} annotators 
+ *
+ * @param {String} corpus
+ * @param {Array} annotators
  */
-export const corpusParse = (corpus, annotators) => {
+export const corpusParse = (corpus, annotators) => new Promise((resolve, reject) => {
 	let annString = '';
 	annotators.forEach(annotator => {
 		annString += `${annotator}, `;
@@ -17,9 +17,11 @@ export const corpusParse = (corpus, annotators) => {
 		annString,
 		'json',
 		(err, parsedText) => {
-			if (err) return err;
-			console.log(JSON.parse(parsedText).sentences[0]);
-			return JSON.parse(parsedText).sentences[0];
+			if (err) {
+				reject(err);
+			}
+			console.log('Output: ', JSON.parse(parsedText).sentences[0]);
+			resolve(JSON.parse(parsedText).sentences[0]);
 		}
 	);
-};
+});
