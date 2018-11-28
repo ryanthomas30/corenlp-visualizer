@@ -12,7 +12,9 @@ import { corpusParse } from './corenlp';
 const styles = {
 	mainContent: {
 		margin: '48px',
-		padding: '48px'
+		marginTop: '12px',
+		padding: '48px',
+		paddingTop: '12px'
 	},
 	label: {
 		userSelect: 'none',
@@ -47,7 +49,6 @@ class App extends Component {
 		this._onSearchChange = this._onSearchChange.bind(this);
 		this._selectAnnotation = this._selectAnnotation.bind(this);
 		this._run = this._run.bind(this);
-
 
 		this.state = { corpus: '', searchValue: '', selectedAnns: new Set([]), output: {}, loading: false };
 	}
@@ -110,6 +111,9 @@ class App extends Component {
 			});
 		};
 
+		const constituencyData = output.parse;
+		console.log('constituencyData:', constituencyData);
+
 		return (
 			<div style={{ height: window.innerHeight, backgroundColor: '#FAFAFA' }} >
 				<MainHeader />
@@ -142,3 +146,118 @@ class App extends Component {
 }
 
 export default App;
+
+/*
+	(ROOT
+		(NP
+			(NP
+				(NNP
+					Bob
+				)
+				(NN
+					pet
+				)
+			)
+			(NP
+				(DT
+					a
+				)
+				(NN
+					dog
+				)
+			)
+			(.
+				.
+			)
+		)
+	)
+*/
+
+const thing = {
+	name: 'ROOT',
+	children: [
+		{
+			name: 'NP',
+			children: [
+				{
+					name: 'NP',
+					children: [
+						{
+							name: 'NNP',
+							children: [
+								{
+									name: 'Bob',
+									children: null
+								}
+							]
+						},
+						{
+							name: 'NN',
+							children: [
+								{
+									name: 'pet',
+									children: null
+								}
+							]
+						}
+					]
+				},
+				{
+					name: 'NP',
+					children: [
+						{
+							name: 'DT',
+							children: [
+								{
+									name: 'a',
+									children: null
+								}
+							]
+						},
+						{
+							name: 'NN',
+							children: [
+								{
+									name: 'dog',
+									children: null
+								}
+							]
+						}
+					]
+				},
+				{
+					name: '.',
+					children: [
+						{
+							name: '.',
+							children: null
+						}
+					]
+				}
+			]
+		}
+	]
+};
+
+function parseConstituents(str) {
+	const trimmedString = str.replace(/\n/g, '');
+	const obj = {};
+	let depth = -1;
+	let currentWord = '';
+	trimmedString.forEach(c => {
+		switch (c) {
+			case '(':
+				depth++;
+				break;
+			case ')':
+				depth--;
+				break;
+			case ' ':
+				// obj.name = currentWord;
+				currentWord = '';
+				break;
+			default:
+				currentWord += c;
+		}
+	});
+}
