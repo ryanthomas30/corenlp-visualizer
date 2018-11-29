@@ -1,19 +1,21 @@
-from flask import Flask
+from flask import Flask, request
+from flask_cors import CORS
 import json
 from nltk.tree import *
 
 app = Flask(__name__)
+CORS(app)
 
 def tree2dict(tree):
-	label = 'label'
+	name = 'name'
 	children = 'children'
-	return {label: tree.label(), children: [tree2dict(t) if isinstance(t, Tree) else t for t in tree]}
+	return {name: tree.label(), children: [tree2dict(t) if isinstance(t, Tree) else {name: t} for t in tree]}
 
-@app.route("/")
+@app.route('/parse', methods=['POST'])
 def hello():
-	a = ['(ROOT\n  (NP\n    (NP (NNP Bob) (NN pet))\n    (NP (DT a) (NN dog))\n    (. .)))']
-	print(tree2dict(Tree.fromstring(a[0])))
-	return 'Hello World'
+	parseString = request.get_json()[u'parseString']
+	print(tree2dict(Tree.fromstring(parseString)))
+	return json.dumps(tree2dict(Tree.fromstring(parseString)))
 
 if __name__ == "__main__":
 	app.run()

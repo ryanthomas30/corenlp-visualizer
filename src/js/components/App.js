@@ -1,11 +1,15 @@
 import React, { Component } from 'react';
+import { connect } from 'react-redux';
 
 import { Form, TextArea, Header, Search, Label, Button, Dimmer, Loader } from 'semantic-ui-react';
+import Tree from 'react-d3-tree';
 
 import FlexBox from './custom/FlexBox';
 import MainHeader from './MainHeader';
+import CenteredTree from './CenteredTree';
 
 import { corpusParse } from './corenlp';
+import * as actions from '../actions';
 
 // corpusParse('Bob pet the dog', ['pos', 'lemma', 'parse', 'depparse']);
 
@@ -21,6 +25,20 @@ const styles = {
 		cursor: 'pointer'
 	}
 };
+
+const myTreeData = [
+	{
+		name: 'Top Level',
+		children: [
+			{
+				name: 'Level 2: A',
+			},
+			{
+				name: 'Level 2: B',
+			},
+		],
+	},
+];
 
 const annotations = [
 	{
@@ -87,12 +105,17 @@ class App extends Component {
 		} catch (err) {
 			console.log(err);
 		}
-		this.setState({ output: nlpOutput });
+		this.setState({ output: nlpOutput }, () => {
+			this.props.processParseData(this.state.output.parse);
+		});
 	}
 
 	/* RENDER METHOD */
 	render() {
-		const { searchValue, selectedAnns, output, loading } = this.state;
+		const { searchValue, selectedAnns, loading } = this.state;
+		const { parseData } = this.props;
+		console.log('parseData:', JSON.stringify(parseData));
+		console.log('treeData: ', JSON.stringify(myTreeData));
 		// Filter in annotations that are either selected or being searched
 		const filteredAnnotations = annotations.filter(ann => {
 			const selected = selectedAnns.has(ann.label);
@@ -111,11 +134,10 @@ class App extends Component {
 			});
 		};
 
-		const constituencyData = output.parse;
-		console.log('constituencyData:', constituencyData);
+		const tree = parseData ? <CenteredTree data={[parseData]} /> : null;
 
 		return (
-			<div style={{ height: window.innerHeight, backgroundColor: '#FAFAFA' }} >
+			<div style={{ minHeight: window.innerHeight, backgroundColor: '#FAFAFA' }} >
 				<MainHeader />
 				<div style={styles.mainContent} >
 					<Dimmer active={loading} inverted>
@@ -139,13 +161,24 @@ class App extends Component {
 					<Button primary onClick={() => this._run()} disabled={selectedAnns.size === 0} >
 						Run
 					</Button>
+					<FlexBox marginTop='medium' >
+						{tree}
+					</FlexBox>
 				</div>
 			</div>
 		);
 	}
 }
 
-export default App;
+App.defaultProps = {
+	parseData: undefined
+};
+
+const mapStateToProps = (state) => ({
+	parseData: state.data.parseData
+});
+
+export default connect(mapStateToProps, actions)(App);
 
 /*
 	(ROOT
@@ -173,7 +206,7 @@ export default App;
 	)
 */
 
-const thing = {
+const parseMockData = {
 	name: 'ROOT',
 	children: [
 		{
@@ -238,26 +271,3 @@ const thing = {
 		}
 	]
 };
-
-function parseConstituents(str) {
-	const trimmedString = str.replace(/\n/g, '');
-	const obj = {};
-	let depth = -1;
-	let currentWord = '';
-	trimmedString.forEach(c => {
-		switch (c) {
-			case '(':
-				depth++;
-				break;
-			case ')':
-				depth--;
-				break;
-			case ' ':
-				// obj.name = currentWord;
-				currentWord = '';
-				break;
-			default:
-				currentWord += c;
-		}
-	});
-}

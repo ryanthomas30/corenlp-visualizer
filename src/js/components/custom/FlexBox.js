@@ -29,8 +29,8 @@ const map = (input) => {
 
 class FlexBox extends Component {
 	render() {
-		let { direction, justify, align, wrap,
-			padding, paddingLeft, paddingRight, paddingTop, paddingBottom,
+		const { direction, justify, align, wrap } = this.props;
+		let { padding, paddingLeft, paddingRight, paddingTop, paddingBottom,
 			margin, marginLeft, marginRight, marginTop, marginBottom } = this.props;
 		/* Sets defaults if prop is undefined */
 		const flexDirection = map(direction) || defaultAttributes.direction;
@@ -52,11 +52,15 @@ class FlexBox extends Component {
 		marginBottom = map(marginBottom);
 
 		/* Merges props with style object */
-		const finalStyling = Object.assign({
+		const finalStyling = {
 			display: 'flex', flexDirection, justifyContent, alignItems, flexWrap,
 			padding, paddingLeft, paddingRight, paddingTop, paddingBottom,
-			margin, marginLeft, marginRight, marginTop, marginBottom
-		}, this.props.style);
+			margin, marginLeft, marginRight, marginTop, marginBottom, ...this.props.style };
+
+		/* Delete undefined fields */
+		Object.keys(finalStyling).forEach(key => finalStyling[key] === undefined && delete finalStyling[key]);
+
+		console.log('finalStyling:', finalStyling);
 
 		return (
 			<div style={finalStyling}>
