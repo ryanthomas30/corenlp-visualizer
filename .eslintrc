@@ -10,7 +10,6 @@
 		"impliedStrict": true
 	},
 	"rules": {
-		"no-extra-parens": 2,
 		"block-scoped-var": 2,
 		"complexity": [
 			"warn",
@@ -20,7 +19,7 @@
 		],
 		"curly": [
 			"error",
-			"all"
+			"multi-line"
 		],
 		"dot-location": 0,
 		"dot-notation": 2,

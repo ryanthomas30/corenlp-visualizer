@@ -3,7 +3,7 @@ import Tree from 'react-d3-tree';
 
 const containerStyles = {
 	width: '100%',
-	height: '80vh',
+	height: '50vh',
 	backgroundColor: '#ffffff',
 	borderRadius: '4px',
 	boxShadow: '0 2px 4px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.12)'
@@ -50,7 +50,7 @@ export default class CenteredTree extends React.PureComponent {
 					translate={this.state.translate}
 					orientation={'vertical'}
 					styles={treeStyles}
-					scaleExtent={{ min: 1, max: 1.5 }}
+					scaleExtent={{ min: 0.5, max: 1.5 }}
 				/>
 			</div>
 		);

@@ -60,8 +60,6 @@ class FlexBox extends Component {
 		/* Delete undefined fields */
 		Object.keys(finalStyling).forEach(key => finalStyling[key] === undefined && delete finalStyling[key]);
 
-		console.log('finalStyling:', finalStyling);
-
 		return (
 			<div style={finalStyling}>
 				{this.props.children}
