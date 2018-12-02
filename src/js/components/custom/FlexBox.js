@@ -1,12 +1,5 @@
 import React, { Component } from 'react';
 
-const defaultAttributes = {
-	direction: 'column',
-	justify: 'start',
-	align: 'center',
-	wrap: 'wrap'
-};
-
 const mapping = {
 	start: 'flex-start',
 	end: 'flex-end',
@@ -33,10 +26,11 @@ class FlexBox extends Component {
 		let { padding, paddingLeft, paddingRight, paddingTop, paddingBottom,
 			margin, marginLeft, marginRight, marginTop, marginBottom } = this.props;
 		/* Sets defaults if prop is undefined */
-		const flexDirection = map(direction) || defaultAttributes.direction;
-		const justifyContent = map(justify) || defaultAttributes.justify;
-		const alignItems = map(align) || defaultAttributes.align;
-		const	flexWrap = wrap !== undefined ? wrapMap(wrap) : defaultAttributes.wrap;
+		const flexDirection = map(direction);
+		const justifyContent = map(justify);
+		const alignItems = map(align);
+		const	flexWrap = wrapMap(wrap);
+
 		/* PADDING */
 		padding = map(padding);
 		paddingLeft = map(paddingLeft);
@@ -45,20 +39,20 @@ class FlexBox extends Component {
 		paddingBottom = map(paddingBottom);
 
 		/* MARGIN */
-		margin = map(margin);
-		marginLeft = map(marginLeft);
-		marginRight = map(marginRight);
-		marginTop = map(marginTop);
-		marginBottom = map(marginBottom);
+		const marginObj = { margin, marginLeft, marginRight, marginTop, marginBottom };
+		Object.keys(marginObj).forEach(k => {
+			marginObj[k] = typeof marginObj[k] === 'number' ? `${marginObj[k]}px` : map(marginObj[k]);
+		});
+		console.log('finalMargin:', marginObj);
 
 		/* Merges props with style object */
 		const finalStyling = {
 			display: 'flex', flexDirection, justifyContent, alignItems, flexWrap,
-			padding, paddingLeft, paddingRight, paddingTop, paddingBottom,
-			margin, marginLeft, marginRight, marginTop, marginBottom, ...this.props.style };
+			padding, paddingLeft, paddingRight, paddingTop, paddingBottom, ...marginObj, ...this.props.style };
 
 		/* Delete undefined fields */
 		Object.keys(finalStyling).forEach(key => finalStyling[key] === undefined && delete finalStyling[key]);
+		console.log('finalStyling:', finalStyling);
 
 		return (
 			<div style={finalStyling}>
@@ -67,5 +61,12 @@ class FlexBox extends Component {
 		);
 	}
 }
+
+FlexBox.defaultProps = {
+	direction: 'column',
+	justify: 'start',
+	align: 'center',
+	wrap: 'wrap'
+};
 
 export default FlexBox;

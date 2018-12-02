@@ -8,7 +8,6 @@ const boxStyle = { padding: '10px', border: '1px solid black', };
 const ArcherTest = () => {
 	return (
 		<div>
-
 			<ArcherContainer strokeColor='red' >
 				<div style={rootStyle}>
 					<ArcherElement

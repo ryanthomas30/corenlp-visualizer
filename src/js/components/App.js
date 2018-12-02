@@ -7,7 +7,6 @@ import { ArcherContainer, ArcherElement } from 'react-archer';
 import FlexBox from './custom/FlexBox';
 import MainHeader from './MainHeader';
 import CenteredTree from './CenteredTree';
-import ArcherTest from './ArcherTest';
 
 import { corpusParse } from './corenlp';
 import * as actions from '../actions';
@@ -45,6 +44,15 @@ const annotations = [
 		label: 'pos'
 	},
 ];
+
+const boxStyle = {
+	padding: '10px',
+	backgroundColor: '#ffffff',
+	borderRadius: '4px',
+	boxShadow: '0 2px 4px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.12)',
+	marginRight: '36px',
+	marginLeft: '36px'
+};
 
 /* Get depth of tree */
 const getDepth = (obj) => {
@@ -149,12 +157,12 @@ class App extends Component {
 		const treeDepth = getDepth(parseData);
 
 		const generateMatrix = (parseData) => {
-			const archerArray = [
+			const archerRows = [
 				<ArcherElement
 					id={parseData.id}
 					relations={rootRelations}
 				>
-					<div>{parseData.name}</div>
+					<div style={boxStyle} >{parseData.name}</div>
 				</ArcherElement>
 			];
 			/* Generates row React elements for the tree's immediate children */
@@ -172,24 +180,24 @@ class App extends Component {
 							}
 						));
 					} else {
-						isLeaf = true;
+						isLeaf = false;
 					}
 					return (
 						<ArcherElement
 							id={child.id}
 							relations={relations}
 						>
-							<div>{child.name}</div>
+							<div style={boxStyle} >{child.name}</div>
 						</ArcherElement>
 					);
 				});
 				const effectiveDepth = isLeaf ? treeDepth : depth;
 				/* Else If rowElements array at depth already exists, merge current rowElements with existing rowElements */
 				/* Else push onto archerArray */
-				if (archerArray[effectiveDepth]) {
-					archerArray[effectiveDepth] = archerArray[effectiveDepth].concat(rowElements);
+				if (archerRows[effectiveDepth]) {
+					archerRows[effectiveDepth] = archerRows[effectiveDepth].concat(rowElements);
 				} else {
-					archerArray[effectiveDepth] = rowElements;
+					archerRows[effectiveDepth] = rowElements;
 				}
 				tree.children.forEach(child => {
 					const newDepth = depth + 1;
@@ -197,12 +205,25 @@ class App extends Component {
 				});
 			};
 			if (parseData.children) generateMatrixHelper(parseData);
-			return archerArray;
+			return archerRows;
 		};
 
-		const tree = parseData.children && selectedAnns.has('parse') ? <CenteredTree data={[parseData]} /> : null;
+		const tree = null;
+		let renderArcher = () => null;
+		if (parseData.children && selectedAnns.has('parse')) {
+			/* Wrap rows in divs; Prepare for rendering */
+			renderArcher = () => generateMatrix(parseData).map((row, i) => {
+				console.log('Hey');
+				return (
+					<FlexBox marginTop={96} direction='row' align='center' justify='center' >
+						{row}
+					</FlexBox>
+				);
+			});
 
-		console.log('generateMatrix(parseData):', generateMatrix(parseData));
+			/* Original d3 Tree */
+			// tree = <CenteredTree data={[parseData]} />;
+		}
 
 		return (
 			<div style={{ minHeight: window.innerHeight, backgroundColor: '#FAFAFA' }} >
@@ -232,7 +253,9 @@ class App extends Component {
 					<FlexBox marginTop='medium' >
 						{tree}
 					</FlexBox>
-					<ArcherContainer />
+					<ArcherContainer strokeColor='#808080' >
+						{renderArcher()}
+					</ArcherContainer>
 				</div>
 			</div>
 		);
