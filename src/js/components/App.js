@@ -8,7 +8,7 @@ import FlexBox from './custom/FlexBox';
 import MainHeader from './MainHeader';
 import CenteredTree from './CenteredTree';
 
-import { corpusParse } from './corenlp';
+import { corpusParse, getPosDescription } from './corenlp';
 import * as actions from '../actions';
 
 // corpusParse('Bob pet the dog', ['pos', 'lemma', 'parse', 'depparse']);
@@ -47,11 +47,12 @@ const annotations = [
 
 const boxStyle = {
 	padding: '10px',
-	backgroundColor: '#ffffff',
 	borderRadius: '4px',
 	boxShadow: '0 2px 4px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.12)',
 	marginRight: '36px',
-	marginLeft: '36px'
+	marginLeft: '36px',
+	minHeight: '42px',
+	minWidth: '42px'
 };
 
 /* Get depth of tree */
@@ -162,13 +163,14 @@ class App extends Component {
 					id={parseData.id}
 					relations={rootRelations}
 				>
-					<div style={boxStyle} >{parseData.name}</div>
+					<FlexBox justify='center' align='center' style={boxStyle} >{parseData.name}</FlexBox>
 				</ArcherElement>
 			];
 			/* Generates row React elements for the tree's immediate children */
 			const generateMatrixHelper = (tree, depth = 1) => {
 				let isLeaf = false;
 				const rowElements = tree.children.map(child => {
+					console.log('getPosDescription(child.name):', getPosDescription(child.name));
 					let relations = null;
 					/* Map child to its children if they exist */
 					/* Else is leaf */
@@ -180,18 +182,21 @@ class App extends Component {
 							}
 						));
 					} else {
-						isLeaf = false;
+						isLeaf = true;
 					}
 					return (
 						<ArcherElement
+							key={child.id}
 							id={child.id}
 							relations={relations}
 						>
-							<div style={boxStyle} >{child.name}</div>
+							<FlexBox justify='center' align='center' style={{ backgroundColor: isLeaf ? '#009688' : '#fafafa', color: isLeaf ? 'white' : '#212121', ...boxStyle }}
+								title={getPosDescription(child.name)} >{child.name}</FlexBox>
 						</ArcherElement>
 					);
 				});
-				const effectiveDepth = isLeaf ? treeDepth : depth;
+				// const effectiveDepth = isLeaf ? treeDepth : depth;
+				const effectiveDepth = depth;
 				/* Else If rowElements array at depth already exists, merge current rowElements with existing rowElements */
 				/* Else push onto archerArray */
 				if (archerRows[effectiveDepth]) {
@@ -213,9 +218,8 @@ class App extends Component {
 		if (parseData.children && selectedAnns.has('parse')) {
 			/* Wrap rows in divs; Prepare for rendering */
 			renderArcher = () => generateMatrix(parseData).map((row, i) => {
-				console.log('Hey');
 				return (
-					<FlexBox marginTop={96} direction='row' align='center' justify='center' >
+					<FlexBox key={i} marginTop={96} direction='row' align='center' justify='center' >
 						{row}
 					</FlexBox>
 				);

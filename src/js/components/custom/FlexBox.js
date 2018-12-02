@@ -22,7 +22,7 @@ const map = (input) => {
 
 class FlexBox extends Component {
 	render() {
-		const { direction, justify, align, wrap } = this.props;
+		const { direction, justify, align, wrap, title } = this.props;
 		let { padding, paddingLeft, paddingRight, paddingTop, paddingBottom,
 			margin, marginLeft, marginRight, marginTop, marginBottom } = this.props;
 		/* Sets defaults if prop is undefined */
@@ -43,7 +43,6 @@ class FlexBox extends Component {
 		Object.keys(marginObj).forEach(k => {
 			marginObj[k] = typeof marginObj[k] === 'number' ? `${marginObj[k]}px` : map(marginObj[k]);
 		});
-		console.log('finalMargin:', marginObj);
 
 		/* Merges props with style object */
 		const finalStyling = {
@@ -52,10 +51,9 @@ class FlexBox extends Component {
 
 		/* Delete undefined fields */
 		Object.keys(finalStyling).forEach(key => finalStyling[key] === undefined && delete finalStyling[key]);
-		console.log('finalStyling:', finalStyling);
 
 		return (
-			<div style={finalStyling}>
+			<div style={finalStyling} title={title} >
 				{this.props.children}
 			</div>
 		);
