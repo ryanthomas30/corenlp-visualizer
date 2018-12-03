@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import { Menu, Container } from 'semantic-ui-react';
-import '../../css/MainHeader.css';
 
 class MainHeader extends Component {
 	render() {

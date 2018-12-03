@@ -2,29 +2,16 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux';
 
 import { Form, TextArea, Header, Search, Label, Button, Dimmer, Loader } from 'semantic-ui-react';
-import { ArcherContainer, ArcherElement } from 'react-archer';
 
 import FlexBox from './custom/FlexBox';
 import MainHeader from './MainHeader';
+import ArcherTree from './ArcherTree';
 import CenteredTree from './CenteredTree';
 
-import { corpusParse, getPosDescription } from './corenlp';
+import { corpusParse } from './corenlp';
 import * as actions from '../actions';
 
 // corpusParse('Bob pet the dog', ['pos', 'lemma', 'parse', 'depparse']);
-
-const styles = {
-	mainContent: {
-		margin: '48px',
-		marginTop: '12px',
-		padding: '48px',
-		paddingTop: '12px'
-	},
-	label: {
-		userSelect: 'none',
-		cursor: 'pointer'
-	}
-};
 
 const annotations = [
 	{
@@ -44,16 +31,6 @@ const annotations = [
 		label: 'pos'
 	},
 ];
-
-const boxStyle = {
-	padding: '10px',
-	borderRadius: '4px',
-	boxShadow: '0 2px 4px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.12)',
-	marginRight: '36px',
-	marginLeft: '36px',
-	minHeight: '42px',
-	minWidth: '42px'
-};
 
 /* Get depth of tree */
 const getDepth = (obj) => {
@@ -122,9 +99,9 @@ class App extends Component {
 
 	/* RENDER METHOD */
 	render() {
-		const { searchValue, selectedAnns, loading } = this.state;
+		const { searchValue, selectedAnns, loading, output } = this.state;
 		const { parseData } = this.props;
-		console.log('parseData:', JSON.stringify(parseData));
+		console.log('basicDependencies:', output.basicDependencies);
 		// Filter in annotations that are either selected or being searched
 		const filteredAnnotations = annotations.filter(ann => {
 			const selected = selectedAnns.has(ann.label);
@@ -136,103 +113,23 @@ class App extends Component {
 			return filteredAnnotations.map(ann => {
 				const selected = selectedAnns.has(ann.label);
 				return (
-					<Label style={styles.label} key={ann.label} color={selected ? 'blue' : ''} onClick={() => this._selectAnnotation(ann)} >
+					<Label className='label' key={ann.label} color={selected ? 'blue' : ''} onClick={() => this._selectAnnotation(ann)} >
 						{ann.name}
 					</Label>
 				);
 			});
 		};
 
-		/* Convert tree to adjacency matrix */
-		/* Array of all rows; Initialized with ROOT */
-		let rootRelations = null;
-		if (parseData.children) {
-			rootRelations = parseData.children.map(child => (
-				{
-					from: { anchor: 'bottom' },
-					to: { anchor: 'top', id: child.id }
-				}
-			));
-		}
-
-		const treeDepth = getDepth(parseData);
-
-		const generateMatrix = (parseData) => {
-			const archerRows = [
-				<ArcherElement
-					id={parseData.id}
-					relations={rootRelations}
-				>
-					<FlexBox justify='center' align='center' style={boxStyle} >{parseData.name}</FlexBox>
-				</ArcherElement>
-			];
-			/* Generates row React elements for the tree's immediate children */
-			const generateMatrixHelper = (tree, depth = 1) => {
-				let isLeaf = false;
-				const rowElements = tree.children.map(child => {
-					console.log('getPosDescription(child.name):', getPosDescription(child.name));
-					let relations = null;
-					/* Map child to its children if they exist */
-					/* Else is leaf */
-					if (child.children) {
-						relations = child.children.map(subChild => (
-							{
-								from: { anchor: 'bottom' },
-								to: { anchor: 'top', id: subChild.id }
-							}
-						));
-					} else {
-						isLeaf = true;
-					}
-					return (
-						<ArcherElement
-							key={child.id}
-							id={child.id}
-							relations={relations}
-						>
-							<FlexBox justify='center' align='center' style={{ backgroundColor: isLeaf ? '#009688' : '#fafafa', color: isLeaf ? 'white' : '#212121', ...boxStyle }}
-								title={getPosDescription(child.name)} >{child.name}</FlexBox>
-						</ArcherElement>
-					);
-				});
-				// const effectiveDepth = isLeaf ? treeDepth : depth;
-				const effectiveDepth = depth;
-				/* Else If rowElements array at depth already exists, merge current rowElements with existing rowElements */
-				/* Else push onto archerArray */
-				if (archerRows[effectiveDepth]) {
-					archerRows[effectiveDepth] = archerRows[effectiveDepth].concat(rowElements);
-				} else {
-					archerRows[effectiveDepth] = rowElements;
-				}
-				tree.children.forEach(child => {
-					const newDepth = depth + 1;
-					if (child.children) generateMatrixHelper(child, newDepth);
-				});
-			};
-			if (parseData.children) generateMatrixHelper(parseData);
-			return archerRows;
-		};
-
 		const tree = null;
-		let renderArcher = () => null;
 		if (parseData.children && selectedAnns.has('parse')) {
-			/* Wrap rows in divs; Prepare for rendering */
-			renderArcher = () => generateMatrix(parseData).map((row, i) => {
-				return (
-					<FlexBox key={i} marginTop={96} direction='row' align='center' justify='center' >
-						{row}
-					</FlexBox>
-				);
-			});
-
 			/* Original d3 Tree */
 			// tree = <CenteredTree data={[parseData]} />;
 		}
 
 		return (
-			<div style={{ minHeight: window.innerHeight, backgroundColor: '#FAFAFA' }} >
+			<div className='app' >
 				<MainHeader />
-				<div style={styles.mainContent} >
+				<div className='main-content' >
 					<Dimmer active={loading} inverted>
 						<Loader active={loading} size='large'>Loading</Loader>
 					</Dimmer>
@@ -257,9 +154,8 @@ class App extends Component {
 					<FlexBox marginTop='medium' >
 						{tree}
 					</FlexBox>
-					<ArcherContainer strokeColor='#808080' >
-						{renderArcher()}
-					</ArcherContainer>
+					<ArcherTree parseData={parseData} depParseData={output.basicDependencies} visible={parseData.children && selectedAnns.has('parse')}
+						hasDependencies={selectedAnns.has('depparse')} />
 				</div>
 			</div>
 		);
@@ -275,69 +171,3 @@ const mapStateToProps = (state) => ({
 });
 
 export default connect(mapStateToProps, actions)(App);
-
-const parseMockData = {
-	name: 'ROOT',
-	children: [
-		{
-			name: 'NP',
-			children: [
-				{
-					name: 'NP',
-					children: [
-						{
-							name: 'NNP',
-							children: [
-								{
-									name: 'Bob',
-									children: null
-								}
-							]
-						},
-						{
-							name: 'NN',
-							children: [
-								{
-									name: 'pet',
-									children: null
-								}
-							]
-						}
-					]
-				},
-				{
-					name: 'NP',
-					children: [
-						{
-							name: 'DT',
-							children: [
-								{
-									name: 'a',
-									children: null
-								}
-							]
-						},
-						{
-							name: 'NN',
-							children: [
-								{
-									name: 'dog',
-									children: null
-								}
-							]
-						}
-					]
-				},
-				{
-					name: '.',
-					children: [
-						{
-							name: '.',
-							children: null
-						}
-					]
-				}
-			]
-		}
-	]
-};
